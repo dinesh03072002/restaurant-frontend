@@ -131,11 +131,11 @@ function CustomerApp() {
     const deliveryTime = new Date(now.getTime() + 30 * 60000); // Add 30 minutes
     
     // Format for display
-    const formattedTime = deliveryTime.toLocaleTimeString('en-IN', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true
-    });
+    //const formattedTime = deliveryTime.toLocaleTimeString('en-IN', {
+    //  hour: '2-digit',
+    //  minute: '2-digit',
+     // hour12: true
+   // });
 
     try {
       // Prepare order data

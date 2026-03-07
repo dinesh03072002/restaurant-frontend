@@ -31,7 +31,7 @@ function AdminDashboard({ user, onLogout }) {
             alert('No token found. Please login again.');
             onLogout();
         }
-    }, []);
+    }, [onLogout]);
 
     // Helper function to get token
     const getToken = () => {
@@ -80,22 +80,23 @@ function AdminDashboard({ user, onLogout }) {
         }
     };
 
-    // Use useEffect with proper dependency
-    useEffect(() => {
-        let isMounted = true;
-        
-        const loadData = async () => {
-            if (isMounted) {
-                await fetchData();
-            }
-        };
-        
-        loadData();
-        
-        return () => {
-            isMounted = false;
-        };
-    }, [activeTab]);
+    // Replace the current useEffect with this:
+useEffect(() => {
+    let isMounted = true;
+    
+    const loadData = async () => {
+        if (isMounted) {
+            await fetchData();
+        }
+    };
+    
+    loadData();
+    
+    return () => {
+        isMounted = false;
+    };
+}, [activeTab]); 
+
 
     const handleInputChange = (e) => {
         const { name, value, type, checked } = e.target;
