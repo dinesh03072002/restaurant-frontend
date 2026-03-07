@@ -1,5 +1,7 @@
 const config = {
-   
-    API_URL: 'https://restaurant-backend-api.onrender.com'
+    API_URL: process.env.NODE_ENV === 'production' 
+        ? 'https://restaurant-backend-api.onrender.com' 
+        : 'http://localhost:5000'
 };
 
+export default config;
