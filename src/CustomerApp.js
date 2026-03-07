@@ -1,3 +1,4 @@
+import config from './config';
 import React, { useState, useEffect } from 'react';
 
 function CustomerApp() {
@@ -25,8 +26,8 @@ function CustomerApp() {
   const fetchData = async () => {
     try {
       const [menuRes, categoriesRes] = await Promise.all([
-        fetch('http://localhost:5000/api/menu'),
-        fetch('http://localhost:5000/api/categories')
+        fetch(`${config.API_URL}/api/menu`),
+        fetch(`${config.API_URL}/api/categories`)  
       ]);
       
       const menuData = await menuRes.json();
@@ -159,7 +160,7 @@ function CustomerApp() {
 
       console.log('Saving order:', orderData);
 
-      const response = await fetch('http://localhost:5000/api/orders', {
+      const response = await fetch(`${config.API_URL}/api/orders`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

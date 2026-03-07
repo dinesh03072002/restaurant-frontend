@@ -1,3 +1,4 @@
+import config from './config';
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
@@ -40,7 +41,7 @@ function AdminDashboard({ user, onLogout }) {
 
     // Create axios instance with interceptor to add token
     const api = axios.create({
-        baseURL: 'http://localhost:5000'
+        baseURL: config.API_URL
     });
 
     // Add request interceptor to attach token
