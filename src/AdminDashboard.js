@@ -88,62 +88,63 @@ function AdminDashboard({ user, onLogout }) {
         });
     };
 
-    const handleFileUpload = async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
+const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
 
-        // Validate file size (5MB max)
-        if (file.size > 5 * 1024 * 1024) {
-            alert('File size too large. Max 5MB allowed.');
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+        alert('File size too large. Max 5MB allowed.');
+        return;
+    }
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+        alert('Please upload an image file');
+        return;
+    }
+
+    const uploadData = new FormData();
+    uploadData.append('image', file);
+
+    setUploading(true);
+    try {
+        const token = localStorage.getItem('token');
+        
+        if (!token) {
+            alert('No authentication token found. Please login again.');
+            onLogout();
             return;
         }
 
-        // Validate file type
-        if (!file.type.startsWith('image/')) {
-            alert('Please upload an image file');
-            return;
+        // CHANGE THIS: Use config.API_URL instead of localhost
+        const response = await axios.post(`${config.API_URL}/api/admin/upload`, uploadData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (response.data.success) {
+            setFormData(prev => ({
+                ...prev,
+                image: response.data.data.imageUrl
+            }));
+            alert('✅ Image uploaded successfully!');
         }
-
-        const uploadData = new FormData();
-        uploadData.append('image', file);
-
-        setUploading(true);
-        try {
-            const token = localStorage.getItem('token');
-            
-            if (!token) {
-                alert('No authentication token found. Please login again.');
-                onLogout();
-                return;
-            }
-
-            const response = await axios.post(`${config.API_URL}/api/admin/upload`, uploadData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-
-            if (response.data.success) {
-                setFormData(prev => ({
-                    ...prev,
-                    image: response.data.data.imageUrl
-                }));
-                alert('✅ Image uploaded successfully!');
-            }
-        } catch (error) {
-            console.error('Upload error:', error);
-            
-            if (error.response?.status === 401) {
-                alert('Session expired. Please login again.');
-                onLogout();
-            } else {
-                alert(`❌ Failed to upload image: ${error.response?.data?.message || error.message}`);
-            }
-        } finally {
-            setUploading(false);
+    } catch (error) {
+        console.error('Upload error:', error);
+        
+        if (error.response?.status === 401) {
+            alert('Session expired. Please login again.');
+            onLogout();
+        } else {
+            alert(`❌ Failed to upload image: ${error.response?.data?.message || error.message}`);
         }
-    };
+    } finally {
+        setUploading(false);
+    }
+};
 
     const handleSubmit = async (e) => {
         e.preventDefault();
