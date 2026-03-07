@@ -40,10 +40,7 @@ function AdminDashboard({ user, onLogout }) {
         return token;
     };
 
-// At the top, make sure useCallback and useMemo are imported
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
 
-// ... (rest of your code)
 
 // Create axios instance with useMemo
 const api = useMemo(() => axios.create({
