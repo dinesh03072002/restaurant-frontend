@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import config from './config'; // Add this import
 
 function AdminLogin({ onLogin }) {
     const [email, setEmail] = useState('');
@@ -15,7 +16,11 @@ function AdminLogin({ onLogin }) {
         setError('');
 
         try {
-            const response = await axios.post('http://localhost:5000/api/auth/login', {
+            // CHANGE THIS:
+            // const response = await axios.post('http://localhost:5000/api/auth/login', {
+            
+            // TO THIS:
+            const response = await axios.post(`${config.API_URL}/api/auth/login`, {
                 email,
                 password
             });
@@ -24,10 +29,11 @@ function AdminLogin({ onLogin }) {
                 localStorage.setItem('token', response.data.data.token);
                 localStorage.setItem('user', JSON.stringify(response.data.data.user));
                 onLogin(response.data.data.user);
-                navigate('/dashboard'); // Redirect to dashboard after login
+                navigate('/dashboard');
             }
         } catch (err) {
-            setError(err.response?.data?.message || 'Login failed');
+            console.error('Login error:', err);
+            setError(err.response?.data?.message || 'Login failed. Please check your connection.');
         } finally {
             setLoading(false);
         }
@@ -53,7 +59,7 @@ function AdminLogin({ onLogin }) {
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 transition-colors"
-                            placeholder="admin@gmail.com"
+                            placeholder="admin@restaurant.com"
                             required
                         />
                     </div>
@@ -79,7 +85,7 @@ function AdminLogin({ onLogin }) {
                     </button>
                 </form>
                 
-                
+               
             </div>
         </div>
     );
