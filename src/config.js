@@ -1,6 +1,6 @@
 const config = {
     API_URL: process.env.NODE_ENV === 'production' 
-        ? 'https://restaurant-backend-api.onrender.com' 
+        ? 'https://restaurant-backend-n306.onrender.com' 
         : 'http://localhost:5000'
 };
 
