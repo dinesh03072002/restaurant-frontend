@@ -40,25 +40,20 @@ function AdminDashboard({ user, onLogout }) {
         return token;
     };
 
-    // Create axios instance with interceptor to add token
-    const api = axios.create({
-        baseURL: config.API_URL
-    });
+// At the top, make sure useCallback and useMemo are imported
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 
-    // Add request interceptor to attach token
-    api.interceptors.request.use(
-        (config) => {
-            const token = getToken();
-            if (token) {
-                config.headers.Authorization = `Bearer ${token}`;
-            }
-            return config;
-        },
-        (error) => {
-            return Promise.reject(error);
-        }
-    );
+// ... (rest of your code)
 
+// Create axios instance with useMemo
+const api = useMemo(() => axios.create({
+    baseURL: config.API_URL,
+    headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+    }
+}), []);
+
+// Fetch data function with useCallback
 const fetchData = useCallback(async () => {
     setLoading(true);
     try {
@@ -72,13 +67,15 @@ const fetchData = useCallback(async () => {
     } catch (error) {
         console.error('Error fetching data:', error);
         if (error.response?.status === 401) {
+            alert('Session expired. Please login again.');
             onLogout();
         }
     } finally {
         setLoading(false);
     }
-}, [activeTab, api, onLogout]); 
+}, [activeTab, api, onLogout]);
 
+// Use useEffect with proper dependency
 useEffect(() => {
     let isMounted = true;
     
@@ -93,8 +90,7 @@ useEffect(() => {
     return () => {
         isMounted = false;
     };
-}, [activeTab, fetchData]); 
-
+}, [fetchData]);
 
     const handleInputChange = (e) => {
         const { name, value, type, checked } = e.target;
