@@ -1,5 +1,6 @@
-import config from './config';
+
 import React, { useState, useEffect } from 'react';
+import config from './config';
 
 function CustomerApp() {
   const [menuItems, setMenuItems] = useState([]);

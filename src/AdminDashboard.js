@@ -1,6 +1,7 @@
-import config from './config';
-import React, { useState, useEffect } from 'react';
+
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import config from './config';
 
 function AdminDashboard({ user, onLogout }) {
     const [menuItems, setMenuItems] = useState([]);
