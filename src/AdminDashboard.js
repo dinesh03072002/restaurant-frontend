@@ -58,29 +58,26 @@ function AdminDashboard({ user, onLogout }) {
         }
     );
 
-    // Fetch data function
-    const fetchData = async () => {
-        setLoading(true);
-        try {
-            if (activeTab === 'menu') {
-                const response = await api.get('/api/menu');
-                setMenuItems(response.data.data);
-            } else if (activeTab === 'orders') {
-                const response = await api.get('/api/admin/orders');
-                setOrders(response.data.data);
-            }
-        } catch (error) {
-            console.error('Error fetching data:', error);
-            if (error.response?.status === 401) {
-                alert('Session expired. Please login again.');
-                onLogout();
-            }
-        } finally {
-            setLoading(false);
+const fetchData = useCallback(async () => {
+    setLoading(true);
+    try {
+        if (activeTab === 'menu') {
+            const response = await api.get('/api/menu');
+            setMenuItems(response.data.data);
+        } else if (activeTab === 'orders') {
+            const response = await api.get('/api/admin/orders');
+            setOrders(response.data.data);
         }
-    };
+    } catch (error) {
+        console.error('Error fetching data:', error);
+        if (error.response?.status === 401) {
+            onLogout();
+        }
+    } finally {
+        setLoading(false);
+    }
+}, [activeTab, api, onLogout]); 
 
-    // Replace the current useEffect with this:
 useEffect(() => {
     let isMounted = true;
     
@@ -95,7 +92,7 @@ useEffect(() => {
     return () => {
         isMounted = false;
     };
-}, [activeTab]); 
+}, [activeTab, fetchData]); 
 
 
     const handleInputChange = (e) => {
