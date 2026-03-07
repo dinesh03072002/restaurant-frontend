@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import axios from 'axios';
 import config from './config';
@@ -34,60 +33,52 @@ function AdminDashboard({ user, onLogout }) {
         }
     }, [onLogout]);
 
-    // Helper function to get token
-    const getToken = () => {
-        const token = localStorage.getItem('token');
-        return token;
-    };
-
-
-
-// Create axios instance with useMemo
-const api = useMemo(() => axios.create({
-    baseURL: config.API_URL,
-    headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-    }
-}), []);
-
-// Fetch data function with useCallback
-const fetchData = useCallback(async () => {
-    setLoading(true);
-    try {
-        if (activeTab === 'menu') {
-            const response = await api.get('/api/menu');
-            setMenuItems(response.data.data);
-        } else if (activeTab === 'orders') {
-            const response = await api.get('/api/admin/orders');
-            setOrders(response.data.data);
+    // Create axios instance with useMemo
+    const api = useMemo(() => axios.create({
+        baseURL: config.API_URL,
+        headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
-    } catch (error) {
-        console.error('Error fetching data:', error);
-        if (error.response?.status === 401) {
-            alert('Session expired. Please login again.');
-            onLogout();
-        }
-    } finally {
-        setLoading(false);
-    }
-}, [activeTab, api, onLogout]);
+    }), []);
 
-// Use useEffect with proper dependency
-useEffect(() => {
-    let isMounted = true;
-    
-    const loadData = async () => {
-        if (isMounted) {
-            await fetchData();
+    // Fetch data function with useCallback
+    const fetchData = useCallback(async () => {
+        setLoading(true);
+        try {
+            if (activeTab === 'menu') {
+                const response = await api.get('/api/menu');
+                setMenuItems(response.data.data);
+            } else if (activeTab === 'orders') {
+                const response = await api.get('/api/admin/orders');
+                setOrders(response.data.data);
+            }
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            if (error.response?.status === 401) {
+                alert('Session expired. Please login again.');
+                onLogout();
+            }
+        } finally {
+            setLoading(false);
         }
-    };
-    
-    loadData();
-    
-    return () => {
-        isMounted = false;
-    };
-}, [fetchData]);
+    }, [activeTab, api, onLogout]);
+
+    // Use useEffect with proper dependency
+    useEffect(() => {
+        let isMounted = true;
+        
+        const loadData = async () => {
+            if (isMounted) {
+                await fetchData();
+            }
+        };
+        
+        loadData();
+        
+        return () => {
+            isMounted = false;
+        };
+    }, [fetchData]);
 
     const handleInputChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -126,7 +117,7 @@ useEffect(() => {
                 return;
             }
 
-            const response = await axios.post('http://localhost:5000/api/admin/upload', uploadData, {
+            const response = await axios.post(`${config.API_URL}/api/admin/upload`, uploadData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                     'Authorization': `Bearer ${token}`
@@ -688,7 +679,7 @@ useEffect(() => {
                 )}
             </main>
 
-            {/* Order Details Modal - Simplified without delivery info */}
+            {/* Order Details Modal */}
             {showOrderDetails && selectedOrder && (
                 <>
                     <div 
