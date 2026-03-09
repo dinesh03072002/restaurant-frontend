@@ -541,12 +541,12 @@ const handleFileUpload = async (e) => {
                                             <tr key={item.id} className="hover:bg-gray-50">
                                                 <td className="px-6 py-2 whitespace-nowrap">
                                                     <img 
-                                                        src={item.image || 'https://via.placeholder.com/40'} 
+                                                        src={item.image || 'https://placehold.co/40x40/orange/white?text=Food'} 
                                                         alt={item.name}
                                                         className="w-10 h-10 rounded-lg object-cover"
-                                                        onError={(e) => {
-                                                            e.target.src = 'https://via.placeholder.com/40';
-                                                        }}
+                                                       onError={(e) => {
+    e.target.src = 'https://placehold.co/40x40/orange/white?text=Food';
+}}
                                                     />
                                                 </td>
                                                 <td className="px-6 py-2">

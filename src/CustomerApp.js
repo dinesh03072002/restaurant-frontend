@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import config from './config';
 
@@ -8,14 +7,25 @@ function CustomerApp() {
   const [cart, setCart] = useState([]);
   const [showCart, setShowCart] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
+  const [showPayment, setShowPayment] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [filter, setFilter] = useState('all');
+  const [paymentMethod, setPaymentMethod] = useState('cod');
+  const [paymentStep, setPaymentStep] = useState('selection');
+  const [selectedUPIApp, setSelectedUPIApp] = useState('');
+  const [cardDetails, setCardDetails] = useState({
+    number: '',
+    expiry: '',
+    cvv: '',
+    name: ''
+  });
   const [customerDetails, setCustomerDetails] = useState({
     name: '',
     phone: '',
+    email: '',
     address: '',
     instructions: ''
   });
@@ -28,7 +38,7 @@ function CustomerApp() {
     try {
       const [menuRes, categoriesRes] = await Promise.all([
         fetch(`${config.API_URL}/api/menu`),
-        fetch(`${config.API_URL}/api/categories`)  
+        fetch(`${config.API_URL}/api/categories`)
       ]);
       
       const menuData = await menuRes.json();
@@ -119,115 +129,83 @@ function CustomerApp() {
     }
     setShowCheckout(true);
     setShowCart(false);
+    setPaymentStep('selection');
+  };
+
+  const handlePaymentSubmit = () => {
+    setPaymentStep('processing');
+    
+    setTimeout(() => {
+      setPaymentStep('success');
+      
+      setTimeout(() => {
+        placeOrder();
+      }, 2000);
+    }, 2000);
   };
 
   const placeOrder = async () => {
-    if (!customerDetails.name || !customerDetails.phone || !customerDetails.address) {
-      alert('Please fill all required fields');
-      return;
+    if (!customerDetails.name || !customerDetails.phone || !customerDetails.email || !customerDetails.address) {
+        alert('Please fill all required fields');
+        return;
     }
 
-    // Calculate preparation time (30 mins from now)
     const now = new Date();
-    const deliveryTime = new Date(now.getTime() + 30 * 60000); // Add 30 minutes
-    
-    // Format for display
-    //const formattedTime = deliveryTime.toLocaleTimeString('en-IN', {
-    //  hour: '2-digit',
-    //  minute: '2-digit',
-     // hour12: true
-   // });
+    const deliveryTime = new Date(now.getTime() + 30 * 60000);
 
     try {
-      // Prepare order data
-      const orderData = {
-        customer_name: customerDetails.name,
-        customer_phone: customerDetails.phone,
-        customer_address: customerDetails.address,
-        items: cart.map(item => ({
-          id: item.id,
-          name: item.name,
-          price: item.price,
-          quantity: item.quantity
-        })),
-        subtotal: cartTotal,
-        delivery_fee: deliveryFee,
-        total: grandTotal,
-        payment_method: 'cod',
-        special_instructions: customerDetails.instructions || '',
-        delivery_date: new Date().toISOString().split('T')[0],
-        delivery_time: deliveryTime.toTimeString().split(' ')[0].substring(0,5)
-      };
+        const orderData = {
+            customer_name: customerDetails.name,
+            customer_phone: customerDetails.phone,
+            customer_email: customerDetails.email, // Add this
+            customer_address: customerDetails.address,
+            items: cart.map(item => ({
+                id: item.id,
+                name: item.name,
+                price: item.price,
+                quantity: item.quantity
+            })),
+            subtotal: cartTotal,
+            delivery_fee: deliveryFee,
+            total: grandTotal,
+            payment_method: String(paymentMethod === 'demo' ? 'demo' : 'cod'),
+            payment_status: paymentMethod === 'demo' ? 'paid' : 'pending',
+            special_instructions: customerDetails.instructions || '',
+            delivery_date: new Date().toISOString().split('T')[0],
+            delivery_time: deliveryTime.toTimeString().split(' ')[0].substring(0,5)
+        };
 
-      console.log('Saving order:', orderData);
+        const response = await fetch(`${config.API_URL}/api/orders`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(orderData)
+        });
 
-      const response = await fetch(`${config.API_URL}/api/orders`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(orderData)
-      });
+        const data = await response.json();
 
-      const data = await response.json();
-      console.log('Order saved response:', data);
-
-      if (data.success) {
-        // Simple WhatsApp message
-        let message = `NEW ORDER - ABC RESTAURANT\n`;
-        message += `------------------------------------\n`;
-        message += `CUSTOMER DETAILS\n`;
-        message += `------------------------------------\n`;
-        message += `Name: ${customerDetails.name}\n`;
-        message += `Phone: ${customerDetails.phone}\n`;
-        message += `Address: ${customerDetails.address}\n`;
-        if (customerDetails.instructions) {
-          message += `Instructions: ${customerDetails.instructions}\n`;
+        if (data.success) {
+            // Show success popup instead of WhatsApp
+            alert(`✅ Order placed successfully! Order ID: ${data.data.order_number}\nCheck your email for confirmation.`);
+            
+            // Clear cart and close
+            setCart([]);
+            setShowCart(false);
+            setShowCheckout(false);
+            setCustomerDetails({ 
+                name: '', 
+                phone: '', 
+                email: '', 
+                address: '', 
+                instructions: '' 
+            });
+            setPaymentMethod('cod');
         }
-        
-        
-        message += `------------------------------------\n`;
-        message += `ORDER ITEMS\n`;
-        message += `------------------------------------\n`;
-        
-        cart.forEach(item => {
-          message += `${item.name} x${item.quantity} = ₹${item.price * item.quantity}\n`;
-        });
-        
-        message += `\n------------------------------------\n`;
-        message += `BILL DETAILS\n`;
-        message += `------------------------------------\n`;
-        message += `Subtotal: ₹${cartTotal}\n`;
-        message += `Delivery: ${deliveryFee === 0 ? 'FREE' : '₹' + deliveryFee}\n`;
-        message += `------------------------------------\n`;
-        message += `TOTAL: ₹${grandTotal}\n\n`;
-        message += `Order ID: ${data.data.order_number}\n`;
-        message += `------------------------------------\n`;
-        message += `Thank you for ordering!\n`;
-        
-        const encoded = encodeURIComponent(message);
-        window.open(`https://wa.me/919347209807?text=${encoded}`, '_blank');
-        
-        // Clear cart and close
-        setCart([]);
-        setShowCart(false);
-        setShowCheckout(false);
-        setCustomerDetails({ 
-          name: '', 
-          phone: '', 
-          address: '', 
-          instructions: ''
-        });
-        
-        alert(`Order placed! Order ID: ${data.data.order_number}`);
-      } else {
-        alert('Failed to save order: ' + (data.error || data.message));
-      }
     } catch (error) {
-      console.error('Error placing order:', error);
-      alert('Error placing order. Please try again.');
+        console.error('Error placing order:', error);
+        alert('Error placing order. Please try again.');
     }
-  };
+};
+
 
   if (loading) {
     return (
@@ -290,7 +268,6 @@ function CustomerApp() {
             </div>
           </div>
           
-          {/* Mobile search */}
           <div className="relative mt-3 md:hidden">
             <input
               type="text"
@@ -550,87 +527,281 @@ function CustomerApp() {
           />
           <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl p-6 w-full max-w-md z-[60] max-h-[90vh] overflow-y-auto animate-scaleIn">
             <h2 className="text-2xl font-bold text-orange-500 mb-6 text-center">Delivery Details</h2>
-            <form onSubmit={(e) => { e.preventDefault(); placeOrder(); }}>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
-                  <input
-                    type="text"
-                    value={customerDetails.name}
-                    onChange={(e) => setCustomerDetails({...customerDetails, name: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 transition-colors"
-                    placeholder="Enter your full name"
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number *</label>
-                  <input
-                    type="tel"
-                    value={customerDetails.phone}
-                    onChange={(e) => setCustomerDetails({...customerDetails, phone: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 transition-colors"
-                    placeholder="10-digit mobile number"
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Delivery Address *</label>
-                  <textarea
-                    value={customerDetails.address}
-                    onChange={(e) => setCustomerDetails({...customerDetails, address: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 transition-colors"
-                    placeholder="House/Flat No., Area, Landmark"
-                    rows="2"
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Special Instructions</label>
-                  <textarea
-                    value={customerDetails.instructions}
-                    onChange={(e) => setCustomerDetails({...customerDetails, instructions: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 transition-colors"
-                    placeholder="Any specific requests?"
-                    rows="2"
-                  />
-                </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+                <input
+                  type="text"
+                  value={customerDetails.name}
+                  onChange={(e) => setCustomerDetails({...customerDetails, name: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 transition-colors"
+                  placeholder="Enter your full name"
+                  required
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number *</label>
+                <input
+                  type="tel"
+                  value={customerDetails.phone}
+                  onChange={(e) => setCustomerDetails({...customerDetails, phone: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 transition-colors"
+                  placeholder="10-digit mobile number"
+                  required
+                />
+              </div>
 
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <h3 className="font-medium mb-2">Order Summary</h3>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span>Items:</span>
-                    <span>{cart.length}</span>
-                  </div>
-                  <div className="flex justify-between font-medium">
-                    <span>Total Amount:</span>
-                    <span className="text-orange-500">₹{grandTotal}</span>
-                  </div>
-                  <p className="text-xs text-gray-500 mt-2">
-                    ⏱️ Ready in approximately 30 minutes
-                  </p>
-                </div>
+              <div>
+    <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+    <input
+        type="email"
+        value={customerDetails.email}
+        onChange={(e) => setCustomerDetails({...customerDetails, email: e.target.value})}
+        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
+        placeholder="Enter your email"
+        required
+    />
+</div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Delivery Address *</label>
+                <textarea
+                  value={customerDetails.address}
+                  onChange={(e) => setCustomerDetails({...customerDetails, address: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 transition-colors"
+                  placeholder="House/Flat No., Area, Landmark"
+                  rows="2"
+                  required
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Special Instructions</label>
+                <textarea
+                  value={customerDetails.instructions}
+                  onChange={(e) => setCustomerDetails({...customerDetails, instructions: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 transition-colors"
+                  placeholder="Any specific requests?"
+                  rows="2"
+                />
+              </div>
 
-                <div className="flex gap-3 pt-2">
-                  <button 
-                    type="submit" 
-                    className="flex-1 bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition-colors"
+              {/* Payment Method Selection */}
+              <div className="border-t border-gray-200 pt-4">
+                <h3 className="font-medium text-gray-800 mb-3">Select Payment Method</h3>
+                
+                <div className="space-y-3">
+                  {/* COD Option */}
+                  <label 
+                    onClick={() => {
+                      setPaymentMethod('cod');
+                      setShowPayment(false);
+                    }}
+                    className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-all ${
+                      paymentMethod === 'cod' 
+                        ? 'border-orange-500 bg-orange-50' 
+                        : 'border-gray-200 hover:bg-gray-50'
+                    }`}
                   >
-                    Place Order
-                  </button>
-                  <button 
-                    type="button" 
-                    className="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300 transition-colors"
-                    onClick={() => setShowCheckout(false)}
+                    <div className="flex items-center gap-3">
+                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                        paymentMethod === 'cod' ? 'border-orange-500' : 'border-gray-300'
+                      }`}>
+                        {paymentMethod === 'cod' && <div className="w-3 h-3 rounded-full bg-orange-500"></div>}
+                      </div>
+                      <div>
+                        <p className="font-medium">Cash on Delivery</p>
+                        <p className="text-xs text-gray-500">Pay when you receive</p>
+                      </div>
+                    </div>
+                    <span className="text-sm text-gray-500">No extra charges</span>
+                  </label>
+                  
+                  {/* Online Payment Option */}
+                  <label 
+                    onClick={() => {
+                      setPaymentMethod('demo');
+                      setShowPayment(true);
+                    }}
+                    className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-all ${
+                      paymentMethod === 'demo' 
+                        ? 'border-orange-500 bg-orange-50' 
+                        : 'border-gray-200 hover:bg-gray-50'
+                    }`}
                   >
-                    Cancel
-                  </button>
+                    <div className="flex items-center gap-3">
+                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                        paymentMethod === 'demo' ? 'border-orange-500' : 'border-gray-300'
+                      }`}>
+                        {paymentMethod === 'demo' && <div className="w-3 h-3 rounded-full bg-orange-500"></div>}
+                      </div>
+                      <div>
+                        <p className="font-medium">Online Payment (Demo)</p>
+                        <p className="text-xs text-green-600">✓ UPI, Cards, PhonePe - Test Mode</p>
+                      </div>
+                    </div>
+                  </label>
                 </div>
               </div>
-            </form>
+
+              {/* Online Payment Section */}
+              {paymentMethod === 'demo' && showPayment && (
+                <div className="bg-gray-50 p-4 rounded-lg border-2 border-orange-200">
+                  <h3 className="font-semibold text-orange-600 mb-4">💳 Pay Online (Demo)</h3>
+                  
+                  {/* UPI Apps Section */}
+                  <div className="mb-4">
+                    <p className="text-sm font-medium text-gray-700 mb-2">UPI Apps</p>
+                    <div className="grid grid-cols-3 gap-2">
+                      {['Google Pay', 'PhonePe', 'Paytm', 'BHIM', 'Amazon Pay', 'WhatsApp'].map(app => (
+                        <button
+                          key={app}
+                          onClick={() => setSelectedUPIApp(app)}
+                          className={`p-2 border rounded-lg text-xs transition-all ${
+                            selectedUPIApp === app 
+                              ? 'border-orange-500 bg-orange-50 text-orange-600' 
+                              : 'border-gray-200 hover:border-orange-300'
+                          }`}
+                        >
+                          {app}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* OR Divider */}
+                  <div className="relative my-4">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-gray-300"></div>
+                    </div>
+                    <div className="relative flex justify-center text-sm">
+                      <span className="px-2 bg-gray-50 text-gray-500">OR Pay with Card</span>
+                    </div>
+                  </div>
+
+                  {/* Card Payment Form */}
+                  <div className="space-y-3">
+                    <input
+                      type="text"
+                      placeholder="Card Number"
+                      value={cardDetails.number}
+                      onChange={(e) => setCardDetails({...cardDetails, number: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
+                    />
+                    <div className="grid grid-cols-2 gap-2">
+                      <input
+                        type="text"
+                        placeholder="MM/YY"
+                        value={cardDetails.expiry}
+                        onChange={(e) => setCardDetails({...cardDetails, expiry: e.target.value})}
+                        className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
+                      />
+                      <input
+                        type="text"
+                        placeholder="CVV"
+                        value={cardDetails.cvv}
+                        onChange={(e) => setCardDetails({...cardDetails, cvv: e.target.value})}
+                        className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
+                      />
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Name on Card"
+                      value={cardDetails.name}
+                      onChange={(e) => setCardDetails({...cardDetails, name: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
+                    />
+                  </div>
+
+                  {/* Test Card Details */}
+                  <div className="mt-3 p-2 bg-blue-50 rounded-lg text-xs">
+                    <p className="font-medium text-blue-700 mb-1">Test Cards:</p>
+                    <p>💳 VISA</p>
+                    <p>💳 MASTERCARD</p>
+                    <p>💳 RUPAY</p>
+                  </div>
+
+                  {/* Pay Button */}
+                  <button
+                    onClick={handlePaymentSubmit}
+                    className="w-full mt-4 bg-green-600 text-white py-3 rounded-lg font-medium hover:bg-green-700 transition-all transform hover:scale-105"
+                  >
+                    Pay ₹{grandTotal} (Demo)
+                  </button>
+
+                  <p className="text-xs text-center text-gray-500 mt-2">
+                    ⚡ Demo payment - no real money charged
+                  </p>
+                </div>
+              )}
+
+              {/* Payment Processing State */}
+              {paymentStep === 'processing' && (
+                <div className="text-center py-6">
+                  <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-orange-500 mx-auto mb-4"></div>
+                  <p className="text-gray-600">Processing payment...</p>
+                </div>
+              )}
+
+              {/* Payment Success State */}
+              {paymentStep === 'success' && (
+                <div className="text-center py-4 bg-green-50 rounded-lg">
+                  <div className="text-4xl mb-2">✅</div>
+                  <p className="text-green-600 font-medium">Payment Successful!</p>
+                  <p className="text-sm text-gray-500">Redirecting to confirmation...</p>
+                </div>
+              )}
+
+              {/* Order Summary */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h3 className="font-medium mb-2">Order Summary</h3>
+                <div className="flex justify-between text-sm mb-1">
+                  <span>Items:</span>
+                  <span>{cart.length}</span>
+                </div>
+                <div className="flex justify-between text-sm mb-1">
+                  <span>Subtotal:</span>
+                  <span>₹{cartTotal}</span>
+                </div>
+                <div className="flex justify-between text-sm mb-1">
+                  <span>Delivery:</span>
+                  <span className={deliveryFee === 0 ? 'text-green-600' : ''}>
+                    {deliveryFee === 0 ? 'FREE' : `₹${deliveryFee}`}
+                  </span>
+                </div>
+                <div className="flex justify-between font-medium pt-2 border-t border-gray-200">
+                  <span>Total:</span>
+                  <span className="text-orange-500">₹{grandTotal}</span>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  ⏱️ Ready in approximately 30 minutes
+                </p>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3 pt-2">
+                {paymentMethod === 'cod' && (
+                  <button 
+                    onClick={placeOrder}
+                    className="flex-1 bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition-colors"
+                  >
+                    Place Order (COD)
+                  </button>
+                )}
+                <button 
+                  className={`${paymentMethod === 'cod' ? 'flex-1' : 'w-full'} bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300 transition-colors`}
+                  onClick={() => {
+                    setShowCheckout(false);
+                    setShowPayment(false);
+                    setPaymentStep('selection');
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
           </div>
         </>
       )}
