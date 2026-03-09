@@ -133,16 +133,21 @@ function CustomerApp() {
   };
 
   const handlePaymentSubmit = () => {
+    // Validate UPI app selection for demo payments
+    if (paymentMethod === 'demo' && !selectedUPIApp) {
+        alert('Please select a UPI app to continue');
+        return;
+    }
+    
     setPaymentStep('processing');
     
     setTimeout(() => {
-      setPaymentStep('success');
-      
-      setTimeout(() => {
-        placeOrder();
-      }, 2000);
+        setPaymentStep('success');
+        setTimeout(() => {
+            placeOrder();
+        }, 2000);
     }, 2000);
-  };
+};
 
   const placeOrder = async () => {
     if (!customerDetails.name || !customerDetails.phone || !customerDetails.email || !customerDetails.address) {
@@ -185,7 +190,7 @@ function CustomerApp() {
 
         if (data.success) {
             // Show success popup instead of WhatsApp
-            alert(`✅ Order placed successfully! Order ID: ${data.data.order_number}\nCheck your email for confirmation.`);
+            alert(`✅ Order placed successfully! Order ID: ${data.data.order_number}`);
             
             // Clear cart and close
             setCart([]);
@@ -638,8 +643,8 @@ function CustomerApp() {
                         {paymentMethod === 'demo' && <div className="w-3 h-3 rounded-full bg-orange-500"></div>}
                       </div>
                       <div>
-                        <p className="font-medium">Online Payment (Demo)</p>
-                        <p className="text-xs text-green-600">✓ UPI, Cards, PhonePe - Test Mode</p>
+                        <p className="font-medium">Online Payment</p>
+                        <p className="text-xs text-green-600">UPI, Cards, PhonePe</p>
                       </div>
                     </div>
                   </label>
@@ -649,7 +654,7 @@ function CustomerApp() {
               {/* Online Payment Section */}
               {paymentMethod === 'demo' && showPayment && (
                 <div className="bg-gray-50 p-4 rounded-lg border-2 border-orange-200">
-                  <h3 className="font-semibold text-orange-600 mb-4">💳 Pay Online (Demo)</h3>
+                  <h3 className="font-semibold text-orange-600 mb-4">Pay Online </h3>
                   
                   {/* UPI Apps Section */}
                   <div className="mb-4">
@@ -787,7 +792,7 @@ function CustomerApp() {
                     onClick={placeOrder}
                     className="flex-1 bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition-colors"
                   >
-                    Place Order (COD)
+                    Place Order
                   </button>
                 )}
                 <button 
