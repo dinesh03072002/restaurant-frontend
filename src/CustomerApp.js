@@ -621,7 +621,7 @@ function CustomerApp() {
                         <p className="text-xs text-gray-500">Pay when you receive</p>
                       </div>
                     </div>
-                    <span className="text-sm text-gray-500">No extra charges</span>
+                    
                   </label>
                   
                   {/* Online Payment Option */}
