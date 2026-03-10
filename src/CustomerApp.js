@@ -605,98 +605,119 @@ function CustomerApp() {
       )}
 
       {/* Header */}
-      <header className="bg-orange-500 text-white shadow-lg sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="transform hover:scale-105 transition-transform duration-300">
-              <h1 className="text-2xl font-bold">ABC Restaurant</h1>
-              <p className="text-sm text-orange-100">Indian • Chinese • Continental</p>
-            </div>
-            
-            <div className="flex items-center gap-4">
-              <div className="relative hidden md:block w-64">
-                <input
-                  type="text"
-                  placeholder="Search for dishes"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full px-4 py-2 pl-10 border border-orange-300 rounded-lg text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-white bg-white"
-                />
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
-              </div>
-              
-              {isLoggedIn ? (
-                <button
-                  onClick={() => navigate('/profile')}
-                  className="flex items-center gap-2 bg-white text-orange-500 px-4 py-2 rounded-lg hover:bg-orange-50 transition-colors"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                  <span className="hidden md:inline">{customerData.name?.split(' ')[0] || 'Profile'}</span>
-                </button>
-              ) : (
-                <button
-                  onClick={() => navigate('/login')}
-                  className="flex items-center gap-2 bg-white text-orange-500 px-4 py-2 rounded-lg hover:bg-orange-50 transition-colors"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-                  </svg>
-                  <span className="hidden md:inline">Login</span>
-                </button>
-              )}
-              
-              <button 
-                onClick={() => setShowCart(true)}
-                className="relative p-2 hover:bg-orange-600 rounded-full transition-all duration-300 transform hover:scale-110"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                </svg>
-                {cart.length > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
-                    {cart.length}
-                  </span>
-                )}
-              </button>
-            </div>
-          </div>
-          
-          <div className="relative mt-3 md:hidden flex gap-2">
-            <div className="relative flex-1">
-              <input
-                type="text"
-                placeholder="Search for dishes"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-4 py-2 pl-10 border border-orange-300 rounded-lg text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-white bg-white"
-              />
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
-            </div>
-            
-            {isLoggedIn ? (
-              <button
-                onClick={() => navigate('/profile')}
-                className="bg-white text-orange-500 p-2 rounded-lg hover:bg-orange-50"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-              </button>
-            ) : (
-              <button
-                onClick={() => navigate('/login')}
-                className="bg-white text-orange-500 p-2 rounded-lg hover:bg-orange-50"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-                </svg>
-              </button>
-            )}
-          </div>
+<header className="bg-orange-500 text-white shadow-lg sticky top-0 z-10">
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+    <div className="flex items-center justify-between">
+      <div className="transform hover:scale-105 transition-transform duration-300">
+        <h1 className="text-2xl font-bold">ABC Restaurant</h1>
+        <p className="text-sm text-orange-100">Indian • Chinese • Continental</p>
+      </div>
+      
+      {/* Desktop View - Hidden on mobile */}
+      <div className="hidden md:flex items-center gap-4">
+        <div className="relative w-64">
+          <input
+            type="text"
+            placeholder="Search for dishes"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full px-4 py-2 pl-10 border border-orange-300 rounded-lg text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-white bg-white"
+          />
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
         </div>
-      </header>
+        
+        {isLoggedIn ? (
+          <button
+            onClick={() => navigate('/profile')}
+            className="flex items-center gap-2 bg-white text-orange-500 px-4 py-2 rounded-lg hover:bg-orange-50 transition-colors"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+            <span>{customerData.name?.split(' ')[0] || 'Profile'}</span>
+          </button>
+        ) : (
+          <button
+            onClick={() => navigate('/login')}
+            className="flex items-center gap-2 bg-white text-orange-500 px-4 py-2 rounded-lg hover:bg-orange-50 transition-colors"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+            </svg>
+            <span>Login</span>
+          </button>
+        )}
+        
+        <button 
+          onClick={() => setShowCart(true)}
+          className="relative p-2 hover:bg-orange-600 rounded-full transition-all duration-300 transform hover:scale-110"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+          </svg>
+          {cart.length > 0 && (
+            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+              {cart.length}
+            </span>
+          )}
+        </button>
+      </div>
+      
+      {/* Mobile View - Only visible on mobile, with TEXT buttons */}
+      <div className="flex md:hidden items-center gap-2">
+        {/* Login/Profile Button with TEXT */}
+        {isLoggedIn ? (
+          <button
+            onClick={() => navigate('/profile')}
+            className="bg-white text-orange-500 px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-orange-50 flex items-center gap-1"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+            <span>{customerData.name?.split(' ')[0] || 'Profile'}</span>
+          </button>
+        ) : (
+          <button
+            onClick={() => navigate('/login')}
+            className="bg-white text-orange-500 px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-orange-50 flex items-center gap-1"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+            </svg>
+            <span>Login</span>
+          </button>
+        )}
+        
+        {/* Cart Button */}
+        <button 
+          onClick={() => setShowCart(true)}
+          className="relative p-2 hover:bg-orange-600 rounded-full"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+          </svg>
+          {cart.length > 0 && (
+            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+              {cart.length}
+            </span>
+          )}
+        </button>
+      </div>
+    </div>
+    
+    {/* Mobile Search Bar - Separate row */}
+    <div className="relative mt-3 md:hidden">
+      <input
+        type="text"
+        placeholder="Search for dishes"
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        className="w-full px-4 py-2 pl-10 border border-orange-300 rounded-lg text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-white bg-white"
+      />
+      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
+    </div>
+  </div>
+</header>
 
       {/* Categories */}
       <div className="bg-white border-b border-gray-200">
