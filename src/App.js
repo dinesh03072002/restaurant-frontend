@@ -3,6 +3,9 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import CustomerApp from './CustomerApp';
 import AdminLogin from './AdminLogin';
 import AdminDashboard from './AdminDashboard';
+import MobileLogin from './MobileLogin'; 
+import CustomerProfile from './CustomerProfile';
+import ProtectedRoute from './ProtectedRoute';
 
 function App() {
     const [user, setUser] = useState(null);
@@ -52,10 +55,18 @@ function App() {
             <Routes>
                 {/* Public routes */}
                 <Route path="/" element={<CustomerApp />} />
+                <Route path="/login" element={<MobileLogin />} /> 
+
+                <Route path="/profile" element={
+                    <ProtectedRoute>
+                        <CustomerProfile />
+                    </ProtectedRoute>
+                } />
+                
                 
                 {/* Login route - accessible even when logged in */}
                 <Route 
-                    path="/login" 
+                    path="admin/login" 
                     element={<AdminLogin onLogin={handleLogin} />} 
                 />
                 
